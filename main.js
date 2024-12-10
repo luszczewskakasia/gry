@@ -60,7 +60,8 @@ const sphere = new THREE.Mesh( s_geometry, s_material ); scene.add( sphere );
 sphere.position.set(-2,2,3);
 scene.add(sphere);
 
-var draggable = null;
+
+
 //cylinder
 const radiusTop = 1;
 const radiusBottom = 1;
@@ -80,6 +81,7 @@ scene.add(cylinder);
 const raycaster = new THREE.Raycaster();
 const click_mouse = new THREE.Vector2();
 const move_mouse = new THREE.Vector2();
+let draggable = null;
 
 window.addEventListener('click', (event) => {
 	if (draggable) {
@@ -87,6 +89,7 @@ window.addEventListener('click', (event) => {
 		draggable = null;
 		return;
 	}
+
     click_mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     click_mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
@@ -97,7 +100,7 @@ window.addEventListener('click', (event) => {
         const intersectedObject = intersects[0].object;
         if (intersectedObject.userData && intersectedObject.userData.draggable) {
             draggable = intersectedObject;
-            console.log(`Found draggable: ${draggable.userData.name}`);
+            //console.log(`Found draggable: ${draggable.userData.name}`);
 			draggable.material.emissive.set(0xff0000);
         }
     }
