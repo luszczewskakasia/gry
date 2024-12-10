@@ -11,7 +11,7 @@ camera.position.z = 5;
 camera.lookAt(0, 0, 0);
 
 //renderer
-const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize( window.innerWidth, window.innerHeight );
 renderer.shadowMap.enabled = true;
 document.body.appendChild( renderer.domElement );
@@ -42,6 +42,7 @@ scene.add(light, pointLight);
 const background_geo = new THREE.BoxGeometry(9, 1, 9);
 const background_material = new THREE.MeshStandardMaterial({ color: 0xfde456 });
 const background_cube = new THREE.Mesh(background_geo, background_material);
+background_cube.userData.ground = true;
 scene.add(background_cube);
 
 //cube
@@ -49,6 +50,7 @@ const c_geometry = new THREE.BoxGeometry( 1, 1, 1 );
 const c_material = new THREE.MeshStandardMaterial( { color: 0x4c00b0 } );
 const cube = new THREE.Mesh( c_geometry, c_material );
 cube.position.set(3,1,-1)
+cube.userData.draggable = true;
 scene.add( cube );
 
 //sphere
@@ -58,6 +60,7 @@ const sphere = new THREE.Mesh( s_geometry, s_material ); scene.add( sphere );
 sphere.position.set(-2,2,3);
 scene.add(sphere);
 
+var draggable = null;
 //cylinder
 const radiusTop = 1;
 const radiusBottom = 1;
@@ -68,12 +71,81 @@ const cylinderGeometry = new THREE.CylinderGeometry(radiusTop, radiusBottom, hei
 const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
 const cylinder = new THREE.Mesh(cylinderGeometry, material);
 cylinder.position.set(2,2,-3);
+cylinder.userData.draggable = true;
+cylinder.userData.name = 'cylinder';
 scene.add(cylinder);
+
+
+
+const raycaster = new THREE.Raycaster();
+const click_mouse = new THREE.Vector2();
+const move_mouse = new THREE.Vector2();
+
+window.addEventListener('click', (event) => {
+	if (draggable) {
+		draggable.material.emissive.set(0x000000);
+		draggable = null;
+		return;
+	}
+    click_mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    click_mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    raycaster.setFromCamera(click_mouse, camera);
+    const intersects = raycaster.intersectObjects(scene.children, true);
+
+    if (intersects.length > 0) {
+        const intersectedObject = intersects[0].object;
+        if (intersectedObject.userData && intersectedObject.userData.draggable) {
+            draggable = intersectedObject;
+            console.log(`Found draggable: ${draggable.userData.name}`);
+			draggable.material.emissive.set(0xff0000);
+        }
+    }
+});
+
+window.addEventListener('mousemove', event => {
+	move_mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+	move_mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+	
+});
+
+function drag_object() {
+	if (draggable) {
+		raycaster.setFromCamera(move_mouse, camera);
+		const intersects = raycaster.intersectObjects(scene.children);
+		
+		if (intersects.length > 0) {
+			for (let obj of intersects) {
+				if (!obj.object.userData.ground) continue;
+
+				draggable.position.x = obj.point.x
+				draggable.position.z = obj.point.z
+
+			}
+		}
+	}
+}
+
+var startTime = null;
+function bounce(object, amplitude, frequency, starting_position) {
+	const animate = (time) => {
+		requestAnimationFrame(animate);
+
+		const elapsed = (time - startTime) / 1000;
+
+		object.position.y = starting_position + amplitude * Math.abs(Math.sin(2 * Math.PI * frequency * elapsed));
+
+		
+	};
+
+	requestAnimationFrame(animate);
+}
+
 
 function animate() {
 	requestAnimationFrame(animate);
-
-	// cube.rotation.y += 0.01;
+	drag_object();
+	bounce(sphere,1, 0.5, 1)
 
 	renderer.render( scene, camera );
 
