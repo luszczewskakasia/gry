@@ -81,8 +81,8 @@ scene.add(cylinder);
 const raycaster = new THREE.Raycaster();
 const click_mouse = new THREE.Vector2();
 const move_mouse = new THREE.Vector2();
-let draggable = null;
 
+let draggable = null;
 window.addEventListener('click', (event) => {
 	if (draggable) {
 		draggable.material.emissive.set(0x000000);
@@ -100,7 +100,6 @@ window.addEventListener('click', (event) => {
         const intersectedObject = intersects[0].object;
         if (intersectedObject.userData && intersectedObject.userData.draggable) {
             draggable = intersectedObject;
-            //console.log(`Found draggable: ${draggable.userData.name}`);
 			draggable.material.emissive.set(0xff0000);
         }
     }
@@ -130,17 +129,15 @@ function drag_object() {
 }
 
 var startTime = null;
-function bounce(object, amplitude, frequency, starting_position) {
+function bounce(object, starting_position) {
 	const animate = (time) => {
 		requestAnimationFrame(animate);
 
 		const elapsed = (time - startTime) / 1000;
 
-		object.position.y = starting_position + amplitude * Math.abs(Math.sin(2 * Math.PI * frequency * elapsed));
-
+		object.position.y = starting_position + Math.abs(Math.sin(4 * elapsed));
 		
 	};
-
 	requestAnimationFrame(animate);
 }
 
@@ -148,7 +145,7 @@ function bounce(object, amplitude, frequency, starting_position) {
 function animate() {
 	requestAnimationFrame(animate);
 	drag_object();
-	bounce(sphere,1, 0.5, 1)
+	bounce(sphere, 1)
 
 	renderer.render( scene, camera );
 
